@@ -32,7 +32,7 @@ def apply_mask_to_population(
         Tuple: masked population and mask
     """
     event_prob = np.random.uniform(
-            low=0.0, high=1.0, size=pop.shape)
+            low=0.0, high=1.0, size=population.shape)
     mask = event_prob < attributes
     return (population[mask], mask)
 
@@ -55,10 +55,10 @@ def get_generation_attributes(population: List, attribute: str) -> np.ndarray:
     for i, idx in np.ndenumerate(pivots):
         if i[0] == 0:
             blah = population[idx].__dict__.keys()
-            attr_values.extend([getattr(population[idx], attr)]*(idx+1))
+            attr_values.extend([getattr(population[idx], attribute)]*(idx+1))
         else:
             attr_values.extend(
-                [getattr(population[idx], attr)]*(idx - pivots[i[0]-1]))
+                [getattr(population[idx], attribute)]*(idx - pivots[i[0]-1]))
     return np.array(attr_values)
 
 def get_population_at_each_generation(population: np.ndarray) -> tuple:
@@ -74,7 +74,7 @@ def get_population_at_each_generation(population: np.ndarray) -> tuple:
     """
     #Get all blob instances across all generations and note unique
     #instances
-    all_blobs = list(np.concatenate(population.ravel()))
+    all_blobs = list(np.concatenate(np.array(population, dtype=object)))
     all_blobs.sort(key=lambda x: x.name)
     all_blob_types = set([x.name for x in all_blobs])
     type_dict = {t: [] for t in all_blob_types}

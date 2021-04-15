@@ -10,7 +10,7 @@ from settings import ENVIRONMENT_DIMENSIONS, BLOB_DISPLAY_SIZE
 from helpers import (get_pivot_indices,
         get_generation_attributes,
         get_population_at_each_generation,
-        mask_population)
+        apply_mask_to_population)
 
 sns.set()
 
@@ -67,11 +67,11 @@ class BaseEnvironment:
                 self.population[-1], 'reproduction_prob')
 
         #Kill off some portion of population based off Blob survival attrs
-        surv_pop, surv_mask = mask_population(self.population[-1], surv_attrs)
+        surv_pop, surv_mask = apply_mask_to_population(self.population[-1], surv_attrs)
 
         #Surviving population reproduced based off Blob reproduction attrs
         repr_attrs = repr_attrs[surv_mask]
-        pop_produced, _ = mask_population(surv_pop, repr_attrs)
+        pop_produced, _ = apply_mask_to_population(surv_pop, repr_attrs)
         #Each new blob gets new coordinates for visualization
         mod_pop = []
         for new_blob in pop_produced:
@@ -86,12 +86,13 @@ class BaseEnvironment:
         next_gen = np.array(next_gen)
         self.population.append(next_gen)
 
-    def show(self, generation: int) -> None:
+    def show(self, generation: int, close=False) -> None:
         """
         Plots graphical display of environment and existing blobs
 
         Args:
             generation (int): idx of generation within population
+            close (bool): to close display after making. Used in tests
         Returns:
             (None)
         """
@@ -117,13 +118,17 @@ class BaseEnvironment:
         ax.legend(loc='upper right', frameon=True)
         ax.set_xlim([0, self.dimension])
         ax.set_ylim([0, self.dimension])
-        plt.show()
 
-    def plot_growth(self, log=True) -> None:
+        plt.show()
+        if close:
+            plt.close()
+
+    def plot_growth(self, close=False, log=True) -> None:
         """
         Plots growth of populations across generations
 
         Args:
+            close (bool): to close display after making. Used in tests
             log (bool): True/False to plot y-axis (Count) in log scale
         Returns:
             (None)
@@ -141,4 +146,7 @@ class BaseEnvironment:
         ax2.set_xlabel('Generation', fontsize=16)
         ax2.set_ylabel('Number blobs', fontsize=16)
         ax2.legend(loc='upper right', frameon=True)
+
         plt.show()
+        if close:
+            plt.close()
