@@ -13,7 +13,7 @@ def get_pivot_indices(population: List) -> tuple:
         population (List): population to get indices for
     Returns:
         Tuple: np.ndarrays of unique blob types and indices of pivots
-"""
+    """
     names = np.array([x.name for x in population])
     pivot_idx = np.append(
         np.where(names[:-1] != names[1:])[0], len(population)-1)
@@ -32,8 +32,8 @@ def apply_mask_to_population(
         Tuple: masked population and mask
     """
     event_prob = np.random.uniform(
-            low=0.0, high=1.0, size=population.shape)
-    mask = event_prob < attributes
+            low=0.1, high=1.0, size=population.shape)
+    mask = event_prob <= attributes
     return (population[mask], mask)
 
 def get_generation_attributes(population: List, attribute: str) -> np.ndarray:
