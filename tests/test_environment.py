@@ -2,7 +2,7 @@
 from typing import List
 import pytest
 from environment import *
-from blobs import BaseBlob, MutatedBlob
+from blobs import BaseBlob, MutatedBaseBlob
 
 @pytest.fixture
 def starting_population() -> List:
@@ -12,7 +12,7 @@ def starting_population() -> List:
     Returns:
         (List)
     """
-    return [BaseBlob(1.0, 1.0, 1.0), MutatedBlob(1.0, 1.0, 1.0)]
+    return [BaseBlob(1.0, 1.0, 1.0), MutatedBaseBlob(1.0, 1.0, 1.0)]
 
 @pytest.fixture
 def empty_env():
@@ -33,7 +33,7 @@ def one_gen_env():
         (BaseEnvironment)
     """
     b = BaseEnvironment()
-    b.spawn_population([BaseBlob(1.0, 1.0, 1.0), MutatedBlob(1.0, 1.0, 1.0)])
+    b.spawn_population([BaseBlob(1.0, 1.0, 1.0), MutatedBaseBlob(1.0, 1.0, 1.0)])
     return b
 
 def test_spawn_population(empty_env, starting_population):
@@ -59,22 +59,27 @@ def test_interact_spawns_new_population(one_gen_env, starting_population):
     one_gen_env.spawn_population(starting_population)
     assert len(one_gen_env.population) == 2
 
-def test_show_first_gen_no_errors(one_gen_env, monkeypatch):
+def test_show_one_gen_first_gen_no_errors(one_gen_env, monkeypatch):
     """Tests that show function on first generation doesn't throw any runtime
     errors"""
     #pytest fixture to close matplotlib figure on display
     monkeypatch.setattr(plt, 'show', lambda: None)
-    one_gen_env.show(0, close=True)
+    one_gen_env.show_one_generation(0)
 
-def test_show_last_gen_no_errors(one_gen_env, monkeypatch):
+def test_show_one_gen_last_gen_no_errors(one_gen_env, monkeypatch):
     """Tests that show function on last generation doesn't throw any runtime
     errors"""
     monkeypatch.setattr(plt, 'show', lambda: None)
-    one_gen_env.show(-1, close=True)
+    one_gen_env.show_one_generation(-1)
 
 def test_plot_growth_no_errors(one_gen_env, starting_population, monkeypatch):
     """Tests that plot growth doesn't throw any runtime errors"""
     one_gen_env.spawn_population(starting_population)
     monkeypatch.setattr(plt, 'show', lambda: None)
-    one_gen_env.plot_growth(close=True)
+    one_gen_env.plot_growth()
 
+def test_show_all_generations_no_errors(one_gen_env, starting_population, monkeypatch):
+    """Tests show_all_generations shows no runtime errors"""
+    one_gen_env.spawn_population(starting_population)
+    monkeypatch.setattr(plt, 'show', lambda: None)
+    one_gen_env.show_all_generations()

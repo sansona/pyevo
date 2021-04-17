@@ -103,3 +103,7 @@ def get_population_at_each_generation(population: np.ndarray) -> tuple:
             for t in type_tracker:
                 type_dict[t].append(0)
     return (type_dict, color_maps)
+
+def find_closest_food(x: float, y: float, food_list: List) -> tuple:
+    """Finds closest food relative to Blob's current position"""
+    pass
