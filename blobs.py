@@ -43,7 +43,7 @@ class BaseBlob:
 
         self.mutation_class: Callable = MutatedBaseBlob
         self.repr_class: Callable = BaseBlob
-        self.mutated_offspring_traits = (0.5, 0.5, 0.0)
+        self.mutated_offspring_traits = (1.0, 1.0, 0.0)
         self.color: str = "blue"
         self.x = random.random()
         self.y = random.random()
@@ -89,17 +89,19 @@ class MutatedBaseBlob(BaseBlob):
         super().__init__(survival_prob, reproduction_prob, mutation_prob)
         self.name: str = "MutatedBaseBlob"
         self.color: str = "red"
+        self.repr_class: Callable = MutatedBaseBlob
 
 
-class GenericBlob(BaseBlob):
-    """Test class for generic secondary blob"""
+class SturdyBlob(BaseBlob):
+    """Test class for generic sturdy blob"""
 
     def __init__(
         self, survival_prob, reproduction_prob, mutation_prob
     ) -> None:
         super().__init__(survival_prob, reproduction_prob, mutation_prob)
-        self.name: str = "GenericBlob"
+        self.name: str = "SturdyBlob"
         self.color: str = "green"
+        self.repr_class: Callable = SturdyBlob
 
 
 class BlobWithFoodSense(BaseBlob):
