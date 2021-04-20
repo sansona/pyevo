@@ -79,6 +79,11 @@ class BaseBlob:
         self.x += self.step * [-1, 1][random.randrange(2)]
         self.y += self.step * [-1, 1][random.randrange(2)]
 
+    def __str__(self):
+        """Prints out name of blob"""
+        return f"""{self.name}({self.survival_prob}, """ \
+                f"""{self.reproduction_prob}, {self.mutation_prob})"""
+
 
 class MutatedBaseBlob(BaseBlob):
     """Test class for mutated base blob"""
