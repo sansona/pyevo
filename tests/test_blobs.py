@@ -4,34 +4,37 @@ from helpers import calculate_distance_to_food
 from blobs import *
 
 
-def test_baseblob_empty_init():
-    """Tests that initializing the BaseBlob class with missing vars raise
-    TypeError"""
-    with pytest.raises(TypeError):
-        a = BaseBlob()
-
-
 def test_baseblob_correct_init():
     """Tests that initializing BaseBlob class will not raise any errors"""
-    a = BaseBlob(1.0, 1.0, 1.0)
+    a = BaseBlob()
 
 
 def test_baseblob_reproduce_guaranteed_mutation():
     """Tests that a blob with a guaranteed mutation will mutate to correct
     class"""
-    a = BaseBlob(1.0, 1.0, 1.0)
+    a = PerfectTestBlob()
     assert a.reproduce().name == "MutatedBaseBlob"
 
 
 def test_baseblob_reproduce_no_mutation():
     """Tests that a blob with no mutation prob will reproduce to same class"""
-    a = BaseBlob(1.0, 1.0, 0.0)
+    a = BaseBlob()
+    a.set_probs(1.0, 1.0, 0.0)  # No mutation prob
     assert a.reproduce().name == "BaseBlob"
+
+
+def test_baseblob_set_probs():
+    """Tests that set_probs method successfully changes attrs"""
+    a = BaseBlob()
+    a.set_probs(0.0, 0.2, 0.3)
+    assert a.survival_prob == 0.0
+    assert a.reproduction_prob == 0.2
+    assert a.mutation_prob == 0.3
 
 
 def test_baseblob_move():
     """Tests that BaseBlob move function moves in correct increment"""
-    a = BaseBlob(1.0, 1.0, 0.0)
+    a = BaseBlob()
     starting_pos = (a.x, a.y)
     a.move((1.0, 1.0))
     ending_pos = (a.x, a.y)
@@ -52,7 +55,7 @@ def test_foodsense_blob_move_towards_food():
     and food location via. move"""
     # Use coordinates to where maximum degrees of freedom to move to ensure
     # blob is actually moving towards food
-    a = BlobWithFoodSense(1.0, 1.0, 1.0)
+    a = BlobWithFoodSense()
     food_pos = (1.0, 1.0)
     a.x, a.y = 0.5, 0.5
 

@@ -55,7 +55,7 @@ def get_generation_attributes(population: List, attribute: str) -> np.ndarray:
         np.ndarray: attributes of population
     """
     if len(population) == 0:
-        #If population is empty, all blobs are dead and thus no attrs to return
+        # If population is empty, all blobs are dead and thus no attrs to return
         return np.array([])
 
     # Get indexes of pivot points in population
@@ -65,11 +65,6 @@ def get_generation_attributes(population: List, attribute: str) -> np.ndarray:
     # For each blob type, save attributes in lists
     for i, idx in np.ndenumerate(pivots):
         if i[0] == 0:
-            try:
-                blah = population[idx].__dict__.keys()
-            except IndexError:
-                breakpoint()
-                pass
             attr_values.extend(
                 [getattr(population[idx], attribute)] * (idx + 1)
             )
@@ -92,11 +87,11 @@ def get_population_at_each_generation(population: np.ndarray) -> tuple:
         Tuple: Dicts with count of each type across generations and color map
             mapping each blob type to a color
     """
-    '''
+    """
     if len(population) == 0:
         #If population is empty, all blobs are dead and thus no attrs to return
         return ({}, {})
-    '''
+    """
     # Get all blob instances across all generations and note unique
     # instances
     all_blobs = list(np.concatenate(np.array(population, dtype=object)))
@@ -107,14 +102,19 @@ def get_population_at_each_generation(population: np.ndarray) -> tuple:
 
     # Iterate through generations and count each type of blob
     for g, gen in enumerate(population):
+        if len(gen) == 0:
+            # If generation has died off, append 0 to all counters
+            for t in type_dict:
+                type_dict[t].append(0)
+            continue
         type_tracker = list(all_blob_types)
-        #If only one type of blob, don't iterate through everything and just
-        #use attrs of that single blob
+        # If only one type of blob, don't iterate through everything and just
+        # use attrs of that single blob
         if len(type_tracker) == 1:
             rep_blob = type_tracker[0]
             if len(gen) == 0:
-                #If entire generation is dead, don't save color attr since
-                #won't be displayed
+                # If entire generation is dead, don't save color attr since
+                # won't be displayed
                 type_dict[rep_blob].append(0)
             else:
                 type_dict[rep_blob].append(len(gen))
@@ -125,6 +125,7 @@ def get_population_at_each_generation(population: np.ndarray) -> tuple:
             # instance and noting the type, only note indices corresponding
             # to type changes and infer the types from the changes
             for i, idx in np.ndenumerate(pivots):
+
                 type_blob = gen[idx - 1].name
                 color_maps[type_blob] = gen[idx - 1].color
                 if i[0] == 0:

@@ -1,30 +1,26 @@
 """Test suite for various helper functions"""
 import numpy as np
 import pytest
-from blobs import BaseBlob, MutatedBaseBlob
+from blobs import *
 from helpers import *
 
 
 @pytest.fixture
 def dummy_population() -> np.ndarray:
     """
-    Setup fixture for generic population
+    Setup fixture for generic, but varied, population
 
     Returns:
         (np.ndarray)
     """
-    return np.array(
-        [
-            [
-                BaseBlob(0.5, 1.0, 1.0),
-                BaseBlob(0.5, 1.0, 1.0),
-                MutatedBaseBlob(0.3, 1.0, 1.0),
-                MutatedBaseBlob(0.3, 1.0, 1.0),
-            ],
-            [BaseBlob(0.5, 0.5, 0.5)],
-        ],
-        dtype=object,
-    )
+    b = BaseBlob()
+    b.set_probs(0.5, 1.0, 1.0)
+    m = MutatedBaseBlob()
+    m.set_probs(0.3, 1.0, 1.0)
+    b2 = BaseBlob()
+    b2.set_probs(0.5, 0.5, 0.5)
+    all_b = [[b for x in range(2)] + [m for y in range(2)], [b2]]
+    return np.array(all_b, dtype=object)
 
 
 @pytest.fixture
@@ -98,7 +94,7 @@ def test_find_closest_food():
     """Tests that find_closest_food function properly identifies the food that
     is closest"""
     # Create dummy blob with set coordinates
-    b = BaseBlob(1.0, 1.0, 1.0)
+    b = PerfectTestBlob()
     b.x, b.y = 0.0, 0.0
 
     food_list = [(0.01, 0.01), (1.0, 1.0), (1.0, 1.0)]
@@ -108,7 +104,7 @@ def test_find_closest_food():
 
 def test_calculate_dist_to_food():
     """Tests that calculate_distance_to_food calculates the proper distance"""
-    b = BaseBlob(1.0, 1.0, 1.0)
+    b = PerfectTestBlob()
     b.x, b.y = 0.0, 0.0
     food_pos = (1.0, 1.0)
     assert calculate_distance_to_food(b, food_pos) == 2.0 ** (1 / 2)

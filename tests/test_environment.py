@@ -13,7 +13,10 @@ def starting_population() -> List:
     Returns:
         (List)
     """
-    return [BaseBlob(1.0, 1.0, 1.0), MutatedBaseBlob(1.0, 1.0, 1.0)]
+    b = PerfectTestBlob()
+    m = MutatedBaseBlob()
+    m.set_probs(1.0, 1.0, 1.0)
+    return [b, m]
 
 
 @pytest.fixture
@@ -36,9 +39,10 @@ def one_gen_env():
         (BaseEnvironment)
     """
     b = BaseEnvironment()
-    b.spawn_population(
-        [BaseBlob(1.0, 1.0, 1.0), MutatedBaseBlob(1.0, 1.0, 1.0)]
-    )
+    base_pop = [BaseBlob(), MutatedBaseBlob()]
+    for p in base_pop:
+        p.set_probs(1.0, 1.0, 1.0)
+    b.spawn_population(base_pop)
     return b
 
 
@@ -115,7 +119,7 @@ def test_foodenv_interact_adds_food_and_population():
     am intentionally testing for both food and population appending since
     population appending is already explicitly tested for earlier"""
     e = EnvironmentWithFood(food=3)
-    e.spawn_population([BaseBlob(1.0, 1.0, 1.0)])
+    e.spawn_population([BaseBlob()])
     e.interact()
     # spawn_population adds an extra generation which is why foodenv inits with
     # food pre-populated
@@ -128,10 +132,11 @@ def test_foodenv_plots(monkeypatch):
     the individual plotting functions are already tested previously"""
     # Setup dummy environment with interacted blobs
     e = EnvironmentWithFood(food=3)
-    e.spawn_population(
-        [BaseBlob(1.0, 1.0, 1.0)]
-        + [BlobWithFoodSense(1.0, 1.0, 1.0) for z in range(3)]
-    )
+    pop = [BaseBlob()] + [BlobWithFoodSense() for z in range(3)]
+    for p in pop:
+        p.set_probs(1.0, 1.0, 1.0)
+    e.spawn_population(pop)
+
     for i in range(3):
         e.interact()
     # Plot all available plotting functions
