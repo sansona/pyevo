@@ -108,3 +108,11 @@ def test_calculate_dist_to_food():
     b.x, b.y = 0.0, 0.0
     food_pos = (1.0, 1.0)
     assert calculate_distance_to_food(b, food_pos) == 2.0 ** (1 / 2)
+
+def test_determine_number_survivors_of_type_properly_counts():
+    """Tests that determine_number_survivors_of_type returns proper value for if
+    blobtype present"""
+    pop = [[PerfectTestBlob() for x in range(5)] + [BaseBlob()]]
+    assert determine_number_survivors_of_type('PerfectTestBlob', pop) == 5
+    assert determine_number_survivors_of_type('BaseBlob', pop) == 1
+    assert determine_number_survivors_of_type('MiscBlob', pop) == 0

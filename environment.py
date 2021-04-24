@@ -50,6 +50,7 @@ class BaseEnvironment:
         pop.sort(key=lambda x: x.name)
         pop_arr = np.array(pop)
         self.population.append(pop_arr)
+        types, _ = get_pivot_indices(pop)
 
     def interact(self) -> None:
         """
@@ -105,7 +106,7 @@ class BaseEnvironment:
                 y=[s.y * self.dimension for s in t_population],
                 color=t_population[0].color,
                 s=BLOB_DISPLAY_SIZE,
-                label=types[idx],
+                label=f"{types[idx]} - {len(t_population)}",
             )
 
         plt.title(

@@ -109,7 +109,7 @@ class SturdyBlob(BaseBlob):
         self.repr_class: Callable = SturdyBlob
         self.survival_prob: float = 0.8
         self.reproduction_prob: float = 0.5
-        self.mutation_prob: float = 0.5
+        self.mutation_prob: float = 0.0
 
 
 class BlobWithFoodSense(BaseBlob):

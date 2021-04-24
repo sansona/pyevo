@@ -87,11 +87,6 @@ def get_population_at_each_generation(population: np.ndarray) -> tuple:
         Tuple: Dicts with count of each type across generations and color map
             mapping each blob type to a color
     """
-    """
-    if len(population) == 0:
-        #If population is empty, all blobs are dead and thus no attrs to return
-        return ({}, {})
-    """
     # Get all blob instances across all generations and note unique
     # instances
     all_blobs = list(np.concatenate(np.array(population, dtype=object)))
@@ -107,6 +102,7 @@ def get_population_at_each_generation(population: np.ndarray) -> tuple:
             for t in type_dict:
                 type_dict[t].append(0)
             continue
+
         type_tracker = list(all_blob_types)
         # If only one type of blob, don't iterate through everything and just
         # use attrs of that single blob
@@ -124,22 +120,32 @@ def get_population_at_each_generation(population: np.ndarray) -> tuple:
             # Since population is sorted, instead of iterating through each
             # instance and noting the type, only note indices corresponding
             # to type changes and infer the types from the changes
-            for i, idx in np.ndenumerate(pivots):
 
-                type_blob = gen[idx - 1].name
-                color_maps[type_blob] = gen[idx - 1].color
+            for i, idx in np.ndenumerate(pivots):
+                # Get index of first blob of type
+                #first_blob_idx = idx - 1
+                #if idx == 0:
+                    #first_blob_idx = idx
+                first_blob_idx = idx
+
+                type_blob = gen[first_blob_idx].name
+                color_maps[type_blob] = gen[first_blob_idx].color
+
                 if i[0] == 0:
                     count = idx + 1
                 else:
                     count = idx - pivots[i[0] - 1]
+
                 type_dict[type_blob].append(count)
                 if type_blob in type_tracker:
                     type_tracker.remove(type_blob)
+
             if type_tracker:
                 # If blob type absent in generation but present in other
                 # generations
                 for t in type_tracker:
                     type_dict[t].append(0)
+
     return (type_dict, color_maps)
 
 
@@ -198,3 +204,21 @@ def calculate_distance_to_food(blob, food_coord: tuple) -> float:
     return ((food_coord[0] - blob.x) ** 2 + (food_coord[1] - blob.y) ** 2) ** (
         1 / 2
     )
+
+def determine_number_survivors_of_type(blob_type: str, population: List) -> int:
+    """
+    Determines survival of blob type in a simulation
+
+    Args:
+        blob_type (str): name of blobtype
+        population (List): all blobs that exist in population as output by
+            population attribute of environments
+    Returns:
+        (int) - number of survivors of blob_type. 0 indicates extinction
+    """
+    #Only examine last generation to save from iterating through all
+    names, _ = get_pivot_indices(population[-1])
+    if names.shape == (0,):
+        return 0
+    return (names == blob_type).sum()
+
