@@ -197,9 +197,11 @@ class EnvironmentWithFood(BaseEnvironment):
         # Determine what blobs survive based off ability to reach food
         survived = []
         for b in self.population[-1]:
-            closest_food, dist = find_closest_food(b, self.food_coords[-1])
+            closest_food, dist = find_closest_coord(
+                (b.x, b.y), self.food_coords[-1]
+            )
             b.move(closest_food)
-            new_dist = calculate_distance_to_food(b, closest_food)
+            new_dist = calculate_distance_to_coord((b.x, b.y), closest_food)
             if new_dist < b.size:
                 # If within the reach of blob, blob "eats" food and survives
                 survived.append(b)
@@ -267,3 +269,17 @@ class EnvironmentWithFood(BaseEnvironment):
         ax.set_ylim([0, self.dimension])
 
         plt.show()
+
+
+class InteractiveEnvironment(EnvironmentWithFood):
+    """
+    Environment where blobs can interact with each other. Blobs in this
+    environment can move and must collect food to survive
+
+    Attributes:
+        food (int): number of food to spawn each epoch
+    """
+
+    def __init__(self, food: int) -> None:
+        """See parent docstring"""
+        super().__init__()

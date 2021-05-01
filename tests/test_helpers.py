@@ -90,29 +90,30 @@ def test_get_population_at_each_gen_retrieves_proper_colors(dummy_population):
     assert color_maps == {"BaseBlob": "blue", "MutatedBaseBlob": "red"}
 
 
-def test_find_closest_food():
-    """Tests that find_closest_food function properly identifies the food that
+def test_find_closest_coord():
+    """Tests that find_closest_coord function properly identifies the food that
     is closest"""
     # Create dummy blob with set coordinates
     b = PerfectTestBlob()
     b.x, b.y = 0.0, 0.0
 
     food_list = [(0.01, 0.01), (1.0, 1.0), (1.0, 1.0)]
-    closest, _ = find_closest_food(b, food_list)
+    closest, _ = find_closest_coord((b.x, b.y), food_list)
     assert closest == (0.01, 0.01)
 
 
 def test_calculate_dist_to_food():
-    """Tests that calculate_distance_to_food calculates the proper distance"""
+    """Tests that calculate_distance_to_coord calculates the proper distance"""
     b = PerfectTestBlob()
     b.x, b.y = 0.0, 0.0
     food_pos = (1.0, 1.0)
-    assert calculate_distance_to_food(b, food_pos) == 2.0 ** (1 / 2)
+    assert calculate_distance_to_coord((b.x, b.y), food_pos) == 2.0 ** (1 / 2)
+
 
 def test_determine_number_survivors_of_type_properly_counts():
     """Tests that determine_number_survivors_of_type returns proper value for if
     blobtype present"""
     pop = [[PerfectTestBlob() for x in range(5)] + [BaseBlob()]]
-    assert determine_number_survivors_of_type('PerfectTestBlob', pop) == 5
-    assert determine_number_survivors_of_type('BaseBlob', pop) == 1
-    assert determine_number_survivors_of_type('MiscBlob', pop) == 0
+    assert determine_number_survivors_of_type("PerfectTestBlob", pop) == 5
+    assert determine_number_survivors_of_type("BaseBlob", pop) == 1
+    assert determine_number_survivors_of_type("MiscBlob", pop) == 0

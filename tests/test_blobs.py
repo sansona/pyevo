@@ -1,6 +1,6 @@
 """Test suite for blobs"""
 import pytest
-from helpers import calculate_distance_to_food
+from helpers import calculate_distance_to_coord
 from blobs import *
 
 
@@ -55,11 +55,11 @@ def test_foodsense_blob_move_towards_food():
     and food location via. move"""
     # Use coordinates to where maximum degrees of freedom to move to ensure
     # blob is actually moving towards food
-    a = BlobWithFoodSense()
+    a = HungryBlob()
     food_pos = (1.0, 1.0)
     a.x, a.y = 0.5, 0.5
 
-    starting_dist = calculate_distance_to_food(a, food_pos)
+    starting_dist = calculate_distance_to_coord((a.x, a.y), food_pos)
     a.move(food_pos)
-    end_dist = calculate_distance_to_food(a, food_pos)
+    end_dist = calculate_distance_to_coord((a.x, a.y), food_pos)
     assert end_dist < starting_dist

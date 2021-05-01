@@ -123,9 +123,9 @@ def get_population_at_each_generation(population: np.ndarray) -> tuple:
 
             for i, idx in np.ndenumerate(pivots):
                 # Get index of first blob of type
-                #first_blob_idx = idx - 1
-                #if idx == 0:
-                    #first_blob_idx = idx
+                # first_blob_idx = idx - 1
+                # if idx == 0:
+                # first_blob_idx = idx
                 first_blob_idx = idx
 
                 type_blob = gen[first_blob_idx].name
@@ -170,42 +170,45 @@ def merge_populations(
     return np.array(merged)
 
 
-def find_closest_food(blob, food_list: List) -> tuple:
+def find_closest_coord(blob_coords: tuple, coord_list: List) -> tuple:
     """
-    Finds closest food relative to Blob's current position
+    Finds closest coordinate relative to Blob's current position
 
     Args:
-        blob (BaseBlob): blob to base distance off
-        food_list (List): List of all available food coordinates
+        blob_coords (tuple): coordinates of blob to base distance off
+        coord_list (List): List of all coordinates to compare against
     Returns:
         (tuple)
     """
     min_dist = 1000000
     closest_food_coord = None
 
-    for coord in food_list:
-        dist = calculate_distance_to_food(blob, coord)
+    for coord in coord_list:
+        dist = calculate_distance_to_coord(blob_coords, coord)
         if dist < min_dist:
-            closest_food_coord = coord
+            closest_coord = coord
             min_dist = dist
-    return closest_food_coord, min_dist
+    return closest_coord, min_dist
 
 
-def calculate_distance_to_food(blob, food_coord: tuple) -> float:
+def calculate_distance_to_coord(blob_coord: tuple, coord: tuple) -> float:
     """
-    Calculates distance from blob to food
+    Calculates distance from blob to coordinate
 
     Args:
-        blob (Blob)
-        food_coord (tuple): coordinate of food in (x,y)
+        blob_coords (tuple): coordinates of blob in (x, y)
+        coord (tuple): coordinate in (x,y)
     Returns:
-        (float): distance to food
+        (float): distance to coordinate
     """
-    return ((food_coord[0] - blob.x) ** 2 + (food_coord[1] - blob.y) ** 2) ** (
-        1 / 2
-    )
+    return (
+        (coord[0] - blob_coord[0]) ** 2 + (coord[1] - blob_coord[1]) ** 2
+    ) ** (1 / 2)
 
-def determine_number_survivors_of_type(blob_type: str, population: List) -> int:
+
+def determine_number_survivors_of_type(
+    blob_type: str, population: List
+) -> int:
     """
     Determines survival of blob type in a simulation
 
@@ -216,9 +219,8 @@ def determine_number_survivors_of_type(blob_type: str, population: List) -> int:
     Returns:
         (int) - number of survivors of blob_type. 0 indicates extinction
     """
-    #Only examine last generation to save from iterating through all
+    # Only examine last generation to save from iterating through all
     names, _ = get_pivot_indices(population[-1])
     if names.shape == (0,):
         return 0
     return (names == blob_type).sum()
-
