@@ -206,7 +206,7 @@ class TimidBlob(BaseInteractingBlob):
         """See parent docstrings"""
         super().__init__()
         self.name: str = "TimidBlob"
-        self.color = "purple"
+        self.color = "green"
         self.mutation_class: Callable = TimidBlob
         self.repr_class: Callable = TimidBlob
 
@@ -247,4 +247,3 @@ class QuickBlob(BaseInteractingBlob):
         self.color = "yellow"
         self.mutation_class: Callable = QuickBlob
         self.repr_class: Callable = QuickBlob
-        self.survival_prob = 0.5
