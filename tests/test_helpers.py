@@ -117,3 +117,35 @@ def test_determine_number_survivors_of_type_properly_counts():
     assert determine_number_survivors_of_type("PerfectTestBlob", pop) == 5
     assert determine_number_survivors_of_type("BaseBlob", pop) == 1
     assert determine_number_survivors_of_type("MiscBlob", pop) == 0
+
+
+def test_find_blobs_in_reach_accurately_finds_blobs():
+    """Test that find_blobs_in_reach will find the right number of blobs in
+    reach and append the proper blob IDs"""
+    ref_blob = BaseBlob()
+    ref_blob.x, ref_blob.y = 0.0, 0.0
+    ref_blob.size = 0.2
+
+    in_reach_blobs = [BaseBlob() for b in range(5)]
+    for b in in_reach_blobs:
+        b.x, b.y = 0.1, 0.1
+
+    out_of_reach_blobs = [BaseBlob() for c in range(10)]
+    for c in out_of_reach_blobs:
+        c.x, c.y = 0.9, 0.9
+
+    found_blobs = find_blobs_in_reach(
+        ref_blob, in_reach_blobs + out_of_reach_blobs
+    )
+    assert len(found_blobs) == 5
+    assert set([(f.x, f.y) for f in found_blobs]) == {(0.1, 0.1)}
+
+
+def test_try_to_eat():
+    """Tests that try_to_eat function results in eating if food is within
+    range and not if outside"""
+    ref_blob = BaseBlob()
+    ref_blob.size = 0.1
+
+    assert try_to_eat(ref_blob, 0.05, [])
+    assert not try_to_eat(ref_blob, 0.2, [])

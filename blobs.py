@@ -1,6 +1,7 @@
 """Repository for all Blob classes and related methods"""
 import random
 from typing import List
+from helpers import find_closest_coord
 
 
 class BaseBlob:
@@ -162,6 +163,7 @@ class BaseInteractingBlob(HungryBlob):
         self.survival_prob: float = 0.8
         self.reproduction_prob: float = 0.5
         self.mutation_prob: float = 0.0
+        self.size = 0.3
         self.mutation_class: Callable = BaseInteractingBlob
         self.repr_class: Callable = BaseInteractingBlob
 
@@ -169,13 +171,13 @@ class BaseInteractingBlob(HungryBlob):
         """
         Base function for blobs to interact with surroundings
 
-        Args
+        Args:
             interaction_list (List): objects to interact with"""
         pass
 
 
 class AttackingBlob(BaseInteractingBlob):
-    """Class for Blob that can attack other blobs"""
+    """Class for Blob that will attack other nearby blobs"""
 
     def __init__(self) -> None:
         """See parent docstrings"""
@@ -198,22 +200,22 @@ class AttackingBlob(BaseInteractingBlob):
 
 
 class TimidBlob(BaseInteractingBlob):
-    """Class for Blob that will run away from other blobs"""
+    """Class for Blob that will run away from other aggressive blobs"""
 
     def __init__(self) -> None:
         """See parent docstrings"""
         super().__init__()
         self.name: str = "TimidBlob"
-        self.color = "brown"
+        self.color = "purple"
         self.mutation_class: Callable = TimidBlob
         self.repr_class: Callable = TimidBlob
 
-    def run(self, coord: tuple) -> None:
+    def run_away(self, coords: tuple) -> None:
         """
         Run away from coordinate of other blob. Opposite of move function
 
         Args:
-            coord (tuple): (x,y) of blob to run away from
+            coords (tuple): (x,y) of blob to run away from
         """
         self.x -= self.step * (1 if self.x < coords[0] else -1)
         self.y -= self.step * (1 if self.y < coords[1] else -1)
@@ -230,11 +232,13 @@ class TimidBlob(BaseInteractingBlob):
         closest_attacker_coords, _ = find_closest_coord(
             (self.x, self.y), blob_coords
         )
-        self.run(closest_attacker_coords)
+        if closest_attacker_coords:
+            self.run_away(closest_attacker_coords)
 
 
 class QuickBlob(BaseInteractingBlob):
-    """Class for very quick blob"""
+    """Class for very quick blob. QuickBlobs eat before any other blob, at
+    the expense of a generally lower survival_prob"""
 
     def __init__(self) -> None:
         """See parent docstrings"""
@@ -243,12 +247,4 @@ class QuickBlob(BaseInteractingBlob):
         self.color = "yellow"
         self.mutation_class: Callable = QuickBlob
         self.repr_class: Callable = QuickBlob
-
-    def interact_with_surroundings(self, interaction_list: List) -> None:
-        """
-        QuickBlob will consume food first during the interaction phase
-
-        Args:
-            interaction_list (List): list of nearby food coordinates
-        """
-        pass
+        self.survival_prob = 0.5

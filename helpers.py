@@ -2,6 +2,7 @@
 this project obeys the convention that functions that modify an objects
 internal state wil be kept as class methods and the rest here"""
 from typing import Union, List
+import random
 import numpy as np
 
 
@@ -181,7 +182,7 @@ def find_closest_coord(blob_coords: tuple, coord_list: List) -> tuple:
         (tuple)
     """
     min_dist = 1000000
-    closest_food_coord = None
+    closest_coord = None
 
     for coord in coord_list:
         dist = calculate_distance_to_coord(blob_coords, coord)
@@ -224,3 +225,46 @@ def determine_number_survivors_of_type(
     if names.shape == (0,):
         return 0
     return (names == blob_type).sum()
+
+
+def find_blobs_in_reach(blob, blob_list: List) -> List:
+    """
+    Find closest number of blobs to coordinate
+
+    Args:
+        blob (Blob)
+        blob_list (List): List of rest of blobs
+    Returns:
+        (List)
+    """
+    closest_blobs = []
+    for b in blob_list:
+        # Check that blob is not identical to comparison blob
+        if (blob.x, blob.y) != (b.x, b.y):
+            dist = calculate_distance_to_coord((blob.x, blob.y), (b.x, b.y))
+            if dist <= blob.size:
+                closest_blobs.append(b)
+    return closest_blobs
+
+
+def try_to_eat(blob, dist_to_food: float, survived_list: List) -> bool:
+    """
+    Function for deciding whether a blob eats or not. If blob within reach of
+    food, will eat and survive epoch. If not, roll dice to decide if survive
+    or not
+
+    Args:
+        blob (Blob)
+        dist_to_food (float): distance to closest food
+        survived_list (List): List to append to if blob survives
+    Returns:
+        (bool): if successfully ate
+    """
+    if dist_to_food <= blob.size:
+        survived_list.append(blob)
+        return True
+    else:
+        rand_surv_prob = random.random()
+        if rand_surv_prob < blob.survival_prob:
+            survived_list.append(blob)
+    return False
