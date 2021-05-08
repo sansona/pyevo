@@ -48,11 +48,13 @@ class BaseBlob:
             (Blob): the type of Blob produced will depend on the mutation_class
             and repr_class attributes declared in __init__
         """
-        mutation_event = random.random()
-        if mutation_event <= self.mutation_prob:
-            return self.mutation_class()
-        else:
-            return self.repr_class()
+        if self.mutation_prob >= 0.01:
+            #Enforce minimum for mutation_prob to eliminate floating point
+            #comparison issues
+            mutation_event = random.random()
+            if mutation_event <= self.mutation_prob:
+                return self.mutation_class()
+        return self.repr_class()
 
     def move(self, coords: tuple) -> None:
         """

@@ -3,7 +3,6 @@ from typing import List, Dict
 from pathlib import Path
 from time import sleep
 import random
-import copy
 from IPython.display import clear_output
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator

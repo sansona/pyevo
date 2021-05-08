@@ -1,7 +1,8 @@
 """Repository of small helper functions used across project. In general,
 this project obeys the convention that functions that modify an objects
 internal state wil be kept as class methods and the rest here"""
-from typing import Union, List
+from typing import Union, List, Callable
+from copy import deepcopy
 import random
 import numpy as np
 
@@ -268,3 +269,87 @@ def try_to_eat(blob, dist_to_food: float, survived_list: List) -> bool:
         if rand_surv_prob < blob.survival_prob:
             survived_list.append(blob)
     return False
+
+def set_attrs_of_population(population_list: Union[List, np.ndarray],
+        s: float = None,
+        r: float = None,
+        m: float =None) -> List:
+    """
+    Set (s, r, m) of entire population
+
+    Args:
+        population_List (Union[List, np.ndarray]): array-like of population
+        s (float): survival_prob to set
+        r (float): reproduction_prob to set
+        m (float): mutation_prob to set
+
+    Returns:
+        (List)
+
+    Raises:
+        ValueError: if all s, r, m are None
+    """
+    if set([s, r, m]) == {None}:
+        raise ValueError('None attribute values passed')
+
+    copied_pop = []
+    for b in population_list:
+        b = deepcopy(b)
+        if s is None:
+            s = b.survival_prob
+        if r is None:
+            r = b.reproduction_prob
+        if m is None:
+            m = b.mutation_prob
+        b.set_probs(s, r, m)
+        copied_pop.append(b)
+    return copied_pop
+
+def set_classes_of_population(population_list: Union[List, np.ndarray],
+        repr_class: Callable = None,
+        mutation_class: Callable = None) -> List:
+    """
+    Set repr and mutation classes of entire population
+
+    Args:
+        population_List (Union[List, np.ndarray]): array-like of population
+        repr_class (Callable): repr_class to set
+        mutation_class (Callable): mutation_class to set
+    Returns:
+        (List)
+
+    Raises:
+        ValueError: if both repr and mutation classes are None
+    """
+    if set([repr_class, mutation_class]) == {None}:
+        raise ValueError('None attribute values passed')
+
+    copied_pop = []
+    for b in population_list:
+        b = deepcopy(b)
+        if repr_class is None:
+            repr_class = b.repr_class
+        if mutation_class is None:
+            mutation_class = b.mutation_class
+        b.repr_class = repr_class
+        b.mutation_class = mutation_class
+        copied_pop.append(b)
+    return copied_pop
+
+def determine_most_prevalent_blob(population_list: Union[List, np.ndarray]) -> str:
+    """
+    Determines which blob type in `population_list` is at highest count
+
+    Args:
+        population_list (Union[List, np.ndarray])
+    Returns:
+        (str): name of most prevalent blob class
+    """
+    counts, _ = get_population_at_each_generation(population_list)
+    min_blob = 0
+    highest_count_blob = None
+    for t in counts:
+        if counts[t][-1] > min_blob:
+            min_blob = counts[t][-1]
+            highest_count_blob = t
+    return highest_count_blob

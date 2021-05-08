@@ -149,3 +149,32 @@ def test_try_to_eat():
 
     assert try_to_eat(ref_blob, 0.05, [])
     assert not try_to_eat(ref_blob, 0.2, [])
+
+def test_set_attrs_of_population_missing_attrs(dummy_population):
+    """Test that set_attrs_of_population will throw ValueError if no
+    attrs are passed"""
+    with pytest.raises(ValueError):
+        set_attrs_of_population(dummy_population[0])
+
+def test_set_attrs_of_population_one_attr(dummy_population):
+    """Test that set_attrs_of_population with one attr passed will set
+    attrs in population to correct value"""
+    s = 0.42
+    changed_pop = set_attrs_of_population(dummy_population[0], s=s)
+    all_survival_attrs = [b.survival_prob for b in changed_pop]
+    assert set(all_survival_attrs) == {s}
+
+def test_set_attrs_of_population_three_attr(dummy_population):
+    """Test that set_attrs_of_population with three attrs passed will set
+    attrs in population to correct value"""
+    srm = (0.42, 0.9, 0.5)
+    changed_pop = set_attrs_of_population(dummy_population[0],
+            s=srm[0], r=srm[1], m=srm[2])
+    all_attrs = [(b.survival_prob, b.reproduction_prob, b.mutation_prob)
+            for b in changed_pop]
+    assert set(all_attrs) == {srm}
+
+def test_determine_most_prevalent_blob(dummy_population):
+    """Tests that `determine_most_prevalent_blob` accurately finds the blob
+    that's most prevalent in final generation"""
+    pass
