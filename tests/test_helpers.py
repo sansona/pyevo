@@ -174,7 +174,16 @@ def test_set_attrs_of_population_three_attr(dummy_population):
             for b in changed_pop]
     assert set(all_attrs) == {srm}
 
-def test_determine_most_prevalent_blob(dummy_population):
+def test_determine_most_prevalent_blob_single_pop():
     """Tests that `determine_most_prevalent_blob` accurately finds the blob
-    that's most prevalent in final generation"""
-    pass
+    that's most prevalent in a single generation"""
+    pop_list = [[BaseBlob() for x in range(5)] + [MutatedBaseBlob() for y in range(3)]]
+    assert determine_most_prevalent_blob(pop_list) == 'BaseBlob'
+
+def test_determine_most_prevalent_blob_multiple_pops():
+    """Tests that `determine_most_prevalent_blob` accurately finds the blob
+    that's most prevalent in only the final generation of multiple
+    generations"""
+    pop_list = [[BaseBlob() for x in range(5)] + [MutatedBaseBlob() for y in range(3)]]
+    final_gen = pop_list.append([HungryBlob()])
+    assert determine_most_prevalent_blob(pop_list) == 'HungryBlob'
