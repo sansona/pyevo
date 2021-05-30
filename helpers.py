@@ -1,7 +1,9 @@
 """Repository of small helper functions used across project. In general,
 this project obeys the convention that functions that modify an objects
 internal state wil be kept as class methods and the rest here"""
-from typing import Union, List
+from typing import Union, List, Callable
+from copy import deepcopy
+import random
 import numpy as np
 
 
@@ -123,9 +125,9 @@ def get_population_at_each_generation(population: np.ndarray) -> tuple:
 
             for i, idx in np.ndenumerate(pivots):
                 # Get index of first blob of type
-                #first_blob_idx = idx - 1
-                #if idx == 0:
-                    #first_blob_idx = idx
+                # first_blob_idx = idx - 1
+                # if idx == 0:
+                # first_blob_idx = idx
                 first_blob_idx = idx
 
                 type_blob = gen[first_blob_idx].name
@@ -170,42 +172,45 @@ def merge_populations(
     return np.array(merged)
 
 
-def find_closest_food(blob, food_list: List) -> tuple:
+def find_closest_coord(blob_coords: tuple, coord_list: List) -> tuple:
     """
-    Finds closest food relative to Blob's current position
+    Finds closest coordinate relative to Blob's current position
 
     Args:
-        blob (BaseBlob): blob to base distance off
-        food_list (List): List of all available food coordinates
+        blob_coords (tuple): coordinates of blob to base distance off
+        coord_list (List): List of all coordinates to compare against
     Returns:
         (tuple)
     """
     min_dist = 1000000
-    closest_food_coord = None
+    closest_coord = None
 
-    for coord in food_list:
-        dist = calculate_distance_to_food(blob, coord)
+    for coord in coord_list:
+        dist = calculate_distance_to_coord(blob_coords, coord)
         if dist < min_dist:
-            closest_food_coord = coord
+            closest_coord = coord
             min_dist = dist
-    return closest_food_coord, min_dist
+    return closest_coord, min_dist
 
 
-def calculate_distance_to_food(blob, food_coord: tuple) -> float:
+def calculate_distance_to_coord(blob_coord: tuple, coord: tuple) -> float:
     """
-    Calculates distance from blob to food
+    Calculates distance from blob to coordinate
 
     Args:
-        blob (Blob)
-        food_coord (tuple): coordinate of food in (x,y)
+        blob_coords (tuple): coordinates of blob in (x, y)
+        coord (tuple): coordinate in (x,y)
     Returns:
-        (float): distance to food
+        (float): distance to coordinate
     """
-    return ((food_coord[0] - blob.x) ** 2 + (food_coord[1] - blob.y) ** 2) ** (
-        1 / 2
-    )
+    return (
+        (coord[0] - blob_coord[0]) ** 2 + (coord[1] - blob_coord[1]) ** 2
+    ) ** (1 / 2)
 
-def determine_number_survivors_of_type(blob_type: str, population: List) -> int:
+
+def determine_number_survivors_of_type(
+    blob_type: str, population: List
+) -> int:
     """
     Determines survival of blob type in a simulation
 
@@ -216,9 +221,135 @@ def determine_number_survivors_of_type(blob_type: str, population: List) -> int:
     Returns:
         (int) - number of survivors of blob_type. 0 indicates extinction
     """
-    #Only examine last generation to save from iterating through all
+    # Only examine last generation to save from iterating through all
     names, _ = get_pivot_indices(population[-1])
     if names.shape == (0,):
         return 0
     return (names == blob_type).sum()
 
+
+def find_blobs_in_reach(blob, blob_list: List) -> List:
+    """
+    Find closest number of blobs to coordinate
+
+    Args:
+        blob (Blob)
+        blob_list (List): List of rest of blobs
+    Returns:
+        (List)
+    """
+    closest_blobs = []
+    for b in blob_list:
+        # Check that blob is not identical to comparison blob
+        if (blob.x, blob.y) != (b.x, b.y):
+            dist = calculate_distance_to_coord((blob.x, blob.y), (b.x, b.y))
+            if dist <= blob.size:
+                closest_blobs.append(b)
+    return closest_blobs
+
+
+def try_to_eat(blob, dist_to_food: float, survived_list: List) -> bool:
+    """
+    Function for deciding whether a blob eats or not. If blob within reach of
+    food, will eat and survive epoch. If not, roll dice to decide if survive
+    or not
+
+    Args:
+        blob (Blob)
+        dist_to_food (float): distance to closest food
+        survived_list (List): List to append to if blob survives
+    Returns:
+        (bool): if successfully ate
+    """
+    if dist_to_food <= blob.size:
+        survived_list.append(blob)
+        return True
+    else:
+        rand_surv_prob = random.random()
+        if rand_surv_prob < blob.survival_prob:
+            survived_list.append(blob)
+    return False
+
+def set_attrs_of_population(population_list: Union[List, np.ndarray],
+        s: float = None,
+        r: float = None,
+        m: float =None) -> List:
+    """
+    Set (s, r, m) of entire population
+
+    Args:
+        population_List (Union[List, np.ndarray]): array-like of population
+        s (float): survival_prob to set
+        r (float): reproduction_prob to set
+        m (float): mutation_prob to set
+
+    Returns:
+        (List)
+
+    Raises:
+        ValueError: if all s, r, m are None
+    """
+    if set([s, r, m]) == {None}:
+        raise ValueError('None attribute values passed')
+
+    copied_pop = []
+    for b in population_list:
+        b = deepcopy(b)
+        if s is None:
+            s = b.survival_prob
+        if r is None:
+            r = b.reproduction_prob
+        if m is None:
+            m = b.mutation_prob
+        b.set_probs(s, r, m)
+        copied_pop.append(b)
+    return copied_pop
+
+def set_classes_of_population(population_list: Union[List, np.ndarray],
+        repr_class: Callable = None,
+        mutation_class: Callable = None) -> List:
+    """
+    Set repr and mutation classes of entire population
+
+    Args:
+        population_List (Union[List, np.ndarray]): array-like of population
+        repr_class (Callable): repr_class to set
+        mutation_class (Callable): mutation_class to set
+    Returns:
+        (List)
+
+    Raises:
+        ValueError: if both repr and mutation classes are None
+    """
+    if set([repr_class, mutation_class]) == {None}:
+        raise ValueError('None attribute values passed')
+
+    copied_pop = []
+    for b in population_list:
+        b = deepcopy(b)
+        if repr_class is None:
+            repr_class = b.repr_class
+        if mutation_class is None:
+            mutation_class = b.mutation_class
+        b.repr_class = repr_class
+        b.mutation_class = mutation_class
+        copied_pop.append(b)
+    return copied_pop
+
+def determine_most_prevalent_blob(population_list: Union[List, np.ndarray]) -> str:
+    """
+    Determines which blob type in `population_list` is at highest count
+
+    Args:
+        population_list (Union[List, np.ndarray])
+    Returns:
+        (str): name of most prevalent blob class
+    """
+    counts, _ = get_population_at_each_generation(population_list)
+    min_blob = 0
+    highest_count_blob = None
+    for t in counts:
+        if counts[t][-1] > min_blob:
+            min_blob = counts[t][-1]
+            highest_count_blob = t
+    return highest_count_blob

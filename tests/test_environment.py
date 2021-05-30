@@ -132,7 +132,7 @@ def test_foodenv_plots(monkeypatch):
     the individual plotting functions are already tested previously"""
     # Setup dummy environment with interacted blobs
     e = EnvironmentWithFood(food=3)
-    pop = [BaseBlob()] + [BlobWithFoodSense() for z in range(3)]
+    pop = [BaseBlob()] + [HungryBlob() for z in range(3)]
     for p in pop:
         p.set_probs(1.0, 1.0, 1.0)
     e.spawn_population(pop)

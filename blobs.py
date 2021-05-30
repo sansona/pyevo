@@ -1,5 +1,7 @@
 """Repository for all Blob classes and related methods"""
 import random
+from typing import List
+from helpers import find_closest_coord
 
 
 class BaseBlob:
@@ -46,11 +48,13 @@ class BaseBlob:
             (Blob): the type of Blob produced will depend on the mutation_class
             and repr_class attributes declared in __init__
         """
-        mutation_event = random.random()
-        if mutation_event <= self.mutation_prob:
-            return self.mutation_class()
-        else:
-            return self.repr_class()
+        if self.mutation_prob >= 0.01:
+            #Enforce minimum for mutation_prob to eliminate floating point
+            #comparison issues
+            mutation_event = random.random()
+            if mutation_event <= self.mutation_prob:
+                return self.mutation_class()
+        return self.repr_class()
 
     def move(self, coords: tuple) -> None:
         """
@@ -112,16 +116,16 @@ class SturdyBlob(BaseBlob):
         self.mutation_prob: float = 0.0
 
 
-class BlobWithFoodSense(BaseBlob):
+class HungryBlob(BaseBlob):
     """Class for Blob with detection sense for where food is"""
 
     def __init__(self) -> None:
         """See parent docstrings"""
         super().__init__()
-        self.name: str = "BlobWithFoodSense"
+        self.name: str = "HungryBlob"
         self.color = "purple"
-        self.mutation_class: Callable = MutatedBlobWithFoodSense
-        self.repr_class: Callable = BlobWithFoodSense
+        self.mutation_class: Callable = MutatedHungryBlob
+        self.repr_class: Callable = HungryBlob
 
     def move(self, coords: tuple) -> None:
         """
@@ -135,15 +139,113 @@ class BlobWithFoodSense(BaseBlob):
         self.y += self.step * (1 if self.y < coords[1] else -1)
 
 
-class MutatedBlobWithFoodSense(BlobWithFoodSense):
+class MutatedHungryBlob(HungryBlob):
     """Class for Mutated Blob with detection sense for where food is. This
     blob is bigger and faster than the base food sense blob"""
 
     def __init__(self) -> None:
         """See parent docstrings"""
         super().__init__()
-        self.name: str = "MutatedBlobWithFoodSense"
+        self.name: str = "MutatedHungryBlob"
         self.color = "pink"
         self.size = 0.3
         self.step = 0.3
-        self.repr_class: Callable = MutatedBlobWithFoodSense
+        self.repr_class: Callable = MutatedHungryBlob
+
+
+class BaseInteractingBlob(HungryBlob):
+    """Base class for Blob that can interact with other blobs. Note that
+    this blob is hungry by default"""
+
+    def __init__(self) -> None:
+        """See parent docstrings"""
+        super().__init__()
+        self.name: str = "BaseInteractingBlob"
+        self.color = "gray"
+        self.survival_prob: float = 0.8
+        self.reproduction_prob: float = 0.5
+        self.mutation_prob: float = 0.0
+        self.size = 0.3
+        self.mutation_class: Callable = BaseInteractingBlob
+        self.repr_class: Callable = BaseInteractingBlob
+
+    def interact_with_surroundings(self, interaction_list: List) -> None:
+        """
+        Base function for blobs to interact with surroundings
+
+        Args:
+            interaction_list (List): objects to interact with"""
+        pass
+
+
+class AttackingBlob(BaseInteractingBlob):
+    """Class for Blob that will attack other nearby blobs"""
+
+    def __init__(self) -> None:
+        """See parent docstrings"""
+        super().__init__()
+        self.name: str = "AttackingBlob"
+        self.color = "red"
+        self.mutation_class: Callable = AttackingBlob
+        self.repr_class: Callable = AttackingBlob
+        self.attack_dmg = 0.2
+
+    def interact_with_surroundings(self, interaction_list: List) -> None:
+        """
+        Attacks nearby blobs, damaging their survival_prob
+
+        Args:
+            interaction_list (List): list of blobs to attack
+        """
+        for b in interaction_list:
+            b.survival_prob -= self.attack_dmg
+
+
+class TimidBlob(BaseInteractingBlob):
+    """Class for Blob that will run away from other aggressive blobs"""
+
+    def __init__(self) -> None:
+        """See parent docstrings"""
+        super().__init__()
+        self.name: str = "TimidBlob"
+        self.color = "green"
+        self.mutation_class: Callable = TimidBlob
+        self.repr_class: Callable = TimidBlob
+
+    def run_away(self, coords: tuple) -> None:
+        """
+        Run away from coordinate of other blob. Opposite of move function
+
+        Args:
+            coords (tuple): (x,y) of blob to run away from
+        """
+        self.x -= self.step * (1 if self.x < coords[0] else -1)
+        self.y -= self.step * (1 if self.y < coords[1] else -1)
+
+    def interact_with_surroundings(self, interaction_list: List) -> None:
+        """
+        TimidBlob runs in the opposite direction of the closest attacking
+        blob
+
+        Args:
+            interaction_list (List): list of blobs to attack
+        """
+        blob_coords = [(b.x, b.y) for b in interaction_list]
+        closest_attacker_coords, _ = find_closest_coord(
+            (self.x, self.y), blob_coords
+        )
+        if closest_attacker_coords:
+            self.run_away(closest_attacker_coords)
+
+
+class QuickBlob(BaseInteractingBlob):
+    """Class for very quick blob. QuickBlobs eat before any other blob, at
+    the expense of a generally lower survival_prob"""
+
+    def __init__(self) -> None:
+        """See parent docstrings"""
+        super().__init__()
+        self.name: str = "QuickBlob"
+        self.color = "yellow"
+        self.mutation_class: Callable = QuickBlob
+        self.repr_class: Callable = QuickBlob

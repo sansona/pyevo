@@ -3,9 +3,9 @@ from typing import List, Dict
 from pathlib import Path
 from time import sleep
 import random
-import copy
 from IPython.display import clear_output
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 import seaborn as sns
 import numpy as np
 from blobs import BaseBlob
@@ -76,9 +76,7 @@ class BaseEnvironment:
         repr_pop, _ = apply_mask_to_population(surv_pop, repr_attrs)
 
         # Each blob will reproduce, with a chance of mutation
-        new_blobs = []
-        for b in repr_pop:
-            new_blobs.append(b.reproduce())
+        new_blobs = [b.reproduce() for b in repr_pop]
 
         # Save instances that survived and new instances, add to population
         self.population.append(merge_populations(surv_pop, new_blobs))
@@ -158,6 +156,7 @@ class BaseEnvironment:
         ax2.set_xlabel("Generation", fontsize=16)
         ax2.set_ylabel("Number blobs", fontsize=16)
         ax2.legend(loc="upper right", frameon=True)
+        ax2.xaxis.set_major_locator(MaxNLocator(integer=True))
 
         plt.show()
 
@@ -197,25 +196,18 @@ class EnvironmentWithFood(BaseEnvironment):
         # Determine what blobs survive based off ability to reach food
         survived = []
         for b in self.population[-1]:
-            closest_food, dist = find_closest_food(b, self.food_coords[-1])
+            closest_food, dist = find_closest_coord(
+                (b.x, b.y), self.food_coords[-1]
+            )
             b.move(closest_food)
-            new_dist = calculate_distance_to_food(b, closest_food)
-            if new_dist < b.size:
-                # If within the reach of blob, blob "eats" food and survives
-                survived.append(b)
-            else:
-                # If blob didn't eat, random chance of survival
-                rand_surv_prob = random.random()
-                if rand_surv_prob < b.survival_prob:
-                    survived.append(b)
+            new_dist = calculate_distance_to_coord((b.x, b.y), closest_food)
+            try_to_eat(b, new_dist, survived)
 
         # Surviving population rolls dice to reproduce
         repr_attrs = get_generation_attributes(survived, "reproduction_prob")
         repr_pop, repr_mask = apply_mask_to_population(survived, repr_attrs)
 
-        new_blobs = []
-        for b in repr_pop:
-            new_blobs.append(b.reproduce())
+        new_blobs = [b.reproduce() for b in repr_pop]
 
         # Save instances that survived and new instances, add to population
         self.population.append(merge_populations(survived, new_blobs))
@@ -254,7 +246,7 @@ class EnvironmentWithFood(BaseEnvironment):
                 y=[s.y * self.dimension for s in t_population],
                 color=t_population[0].color,
                 s=BLOB_DISPLAY_SIZE,
-                label=types[idx],
+                label=f"{types[idx]} - {len(t_population)}",
             )
 
         plt.title(
@@ -267,3 +259,73 @@ class EnvironmentWithFood(BaseEnvironment):
         ax.set_ylim([0, self.dimension])
 
         plt.show()
+
+
+class InteractiveEnvironment(EnvironmentWithFood):
+    """
+    Environment where blobs can interact with each other. Blobs in this
+    environment can move and must collect food to survive
+
+    Attributes:
+        food (int): number of food to spawn each epoch
+    """
+
+    def __init__(self, food: int) -> None:
+        """See parent docstring"""
+        super().__init__(food)
+        self.food = food
+
+    def interact(self) -> None:
+        """
+        Spawns food, then blobs move towards food. QuickBlobs eat first, then
+        rest of blobs interact to decide who eats
+        """
+        self.spawn_food()
+
+        survived = []
+        remaining_food = self.food_coords[-1]
+        eaten_food = []
+        for b in self.population[-1]:
+            closest_food, dist = find_closest_coord(
+                (b.x, b.y), self.food_coords[-1]
+            )
+            # All blobs move towards food simultaneously
+            b.move(closest_food)
+            # QuickBlobs eat first
+            if b.name == "QuickBlob":
+                new_dist = calculate_distance_to_coord(
+                    (b.x, b.y), closest_food
+                )
+                successfully_ate = try_to_eat(b, new_dist, survived)
+                if successfully_ate:
+                    eaten_food.append(closest_food)
+
+        # Remove food that's already been eaten by QuickBlobs
+        for f in set(eaten_food):
+            if f in remaining_food:
+                remaining_food.remove(f)
+
+        # Now rest of blobs interact
+        for b in self.population[-1]:
+            if b.name != "QuickBlob":
+                closest_food, dist = find_closest_coord(
+                    (b.x, b.y), remaining_food
+                )
+                nearby_blobs = find_blobs_in_reach(b, self.population[-1])
+                try:
+                    b.interact_with_surroundings(nearby_blobs)
+                except AttributeError:
+                    # Blobs not inheriting from BaseInteractingBlob will not
+                    # contain this method, so no interaction from them
+                    pass
+                # If blob is sufficiently weakened from attack, can't eat even
+                # if within range
+                if b.survival_prob > 0:
+                    try_to_eat(b, dist, survived)
+
+        # Surviving population rolls dice to reproduce
+        repr_attrs = get_generation_attributes(survived, "reproduction_prob")
+        repr_pop, repr_mask = apply_mask_to_population(survived, repr_attrs)
+
+        new_blobs = [b.reproduce() for b in repr_pop]
+        self.population.append(merge_populations(survived, new_blobs))

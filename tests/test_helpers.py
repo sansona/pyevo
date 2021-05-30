@@ -90,29 +90,100 @@ def test_get_population_at_each_gen_retrieves_proper_colors(dummy_population):
     assert color_maps == {"BaseBlob": "blue", "MutatedBaseBlob": "red"}
 
 
-def test_find_closest_food():
-    """Tests that find_closest_food function properly identifies the food that
+def test_find_closest_coord():
+    """Tests that find_closest_coord function properly identifies the food that
     is closest"""
     # Create dummy blob with set coordinates
     b = PerfectTestBlob()
     b.x, b.y = 0.0, 0.0
 
     food_list = [(0.01, 0.01), (1.0, 1.0), (1.0, 1.0)]
-    closest, _ = find_closest_food(b, food_list)
+    closest, _ = find_closest_coord((b.x, b.y), food_list)
     assert closest == (0.01, 0.01)
 
 
 def test_calculate_dist_to_food():
-    """Tests that calculate_distance_to_food calculates the proper distance"""
+    """Tests that calculate_distance_to_coord calculates the proper distance"""
     b = PerfectTestBlob()
     b.x, b.y = 0.0, 0.0
     food_pos = (1.0, 1.0)
-    assert calculate_distance_to_food(b, food_pos) == 2.0 ** (1 / 2)
+    assert calculate_distance_to_coord((b.x, b.y), food_pos) == 2.0 ** (1 / 2)
+
 
 def test_determine_number_survivors_of_type_properly_counts():
     """Tests that determine_number_survivors_of_type returns proper value for if
     blobtype present"""
     pop = [[PerfectTestBlob() for x in range(5)] + [BaseBlob()]]
-    assert determine_number_survivors_of_type('PerfectTestBlob', pop) == 5
-    assert determine_number_survivors_of_type('BaseBlob', pop) == 1
-    assert determine_number_survivors_of_type('MiscBlob', pop) == 0
+    assert determine_number_survivors_of_type("PerfectTestBlob", pop) == 5
+    assert determine_number_survivors_of_type("BaseBlob", pop) == 1
+    assert determine_number_survivors_of_type("MiscBlob", pop) == 0
+
+
+def test_find_blobs_in_reach_accurately_finds_blobs():
+    """Test that find_blobs_in_reach will find the right number of blobs in
+    reach and append the proper blob IDs"""
+    ref_blob = BaseBlob()
+    ref_blob.x, ref_blob.y = 0.0, 0.0
+    ref_blob.size = 0.2
+
+    in_reach_blobs = [BaseBlob() for b in range(5)]
+    for b in in_reach_blobs:
+        b.x, b.y = 0.1, 0.1
+
+    out_of_reach_blobs = [BaseBlob() for c in range(10)]
+    for c in out_of_reach_blobs:
+        c.x, c.y = 0.9, 0.9
+
+    found_blobs = find_blobs_in_reach(
+        ref_blob, in_reach_blobs + out_of_reach_blobs
+    )
+    assert len(found_blobs) == 5
+    assert set([(f.x, f.y) for f in found_blobs]) == {(0.1, 0.1)}
+
+
+def test_try_to_eat():
+    """Tests that try_to_eat function results in eating if food is within
+    range and not if outside"""
+    ref_blob = BaseBlob()
+    ref_blob.size = 0.1
+
+    assert try_to_eat(ref_blob, 0.05, [])
+    assert not try_to_eat(ref_blob, 0.2, [])
+
+def test_set_attrs_of_population_missing_attrs(dummy_population):
+    """Test that set_attrs_of_population will throw ValueError if no
+    attrs are passed"""
+    with pytest.raises(ValueError):
+        set_attrs_of_population(dummy_population[0])
+
+def test_set_attrs_of_population_one_attr(dummy_population):
+    """Test that set_attrs_of_population with one attr passed will set
+    attrs in population to correct value"""
+    s = 0.42
+    changed_pop = set_attrs_of_population(dummy_population[0], s=s)
+    all_survival_attrs = [b.survival_prob for b in changed_pop]
+    assert set(all_survival_attrs) == {s}
+
+def test_set_attrs_of_population_three_attr(dummy_population):
+    """Test that set_attrs_of_population with three attrs passed will set
+    attrs in population to correct value"""
+    srm = (0.42, 0.9, 0.5)
+    changed_pop = set_attrs_of_population(dummy_population[0],
+            s=srm[0], r=srm[1], m=srm[2])
+    all_attrs = [(b.survival_prob, b.reproduction_prob, b.mutation_prob)
+            for b in changed_pop]
+    assert set(all_attrs) == {srm}
+
+def test_determine_most_prevalent_blob_single_pop():
+    """Tests that `determine_most_prevalent_blob` accurately finds the blob
+    that's most prevalent in a single generation"""
+    pop_list = [[BaseBlob() for x in range(5)] + [MutatedBaseBlob() for y in range(3)]]
+    assert determine_most_prevalent_blob(pop_list) == 'BaseBlob'
+
+def test_determine_most_prevalent_blob_multiple_pops():
+    """Tests that `determine_most_prevalent_blob` accurately finds the blob
+    that's most prevalent in only the final generation of multiple
+    generations"""
+    pop_list = [[BaseBlob() for x in range(5)] + [MutatedBaseBlob() for y in range(3)]]
+    final_gen = pop_list.append([HungryBlob()])
+    assert determine_most_prevalent_blob(pop_list) == 'HungryBlob'
