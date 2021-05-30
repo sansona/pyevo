@@ -17,8 +17,7 @@ This is only the start of the analyses that `pyevo` enables however. Here's an e
 
 ---
 ## Contributing
-Contributions at all levels are welcome! `pyevo` is a project in its infancy that I am unlikely to make considerable progress on just by myself, so please feel free to reach out at any time. I'm happy to discuss with anyone the potential for contributions at all levels. Please see ```CONTRIBUTING.md``` for some
-general guidelines and message [me](mailto:jiaming.justin.chen@gmail.com) with any questions!
+Contributions at all levels are welcome! `pyevo` is a project in its infancy that I am unlikely to make considerable progress on just by myself, so please feel free to reach out at any time. I'm happy to discuss with anyone the potential for contributions at all levels. Don't hesitate to message [me](mailto:jiaming.justin.chen@gmail.com) with any questions!
 
 ---
 ## Meta
